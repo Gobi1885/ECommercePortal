@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Assignment 3 - E-Commerce Portal (Single-page Demo)</title>
+  <style>
+    /* Simple, clean styles for the demo portal */
+    :root{--accent:#0b5fff;--muted:#6b7280;--card:#ffffff;--bg:#f4f6fb}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:var(--bg);color:#111}
+    header{background:white;box-shadow:0 2px 6px rgba(10,10,20,0.06);position:sticky;top:0;z-index:10}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    .nav{display:flex;align-items:center;gap:16px}
+    .brand{font-weight:700;color:var(--accent);font-size:20px}
+    nav a{color:#111;text-decoration:none;padding:10px 12px;border-radius:8px}
+    nav a.active, nav a:hover{background:rgba(11,95,255,0.08)}
+    .spacer{flex:1}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .secondary{background:transparent;color:var(--accent);border:1px solid rgba(11,95,255,0.12)}
+    main{padding:28px 0}
+    .grid{display:grid;gap:16px}
+    .two{grid-template-columns:1fr 320px}
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,0.03)}
+    .products{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+    .product{padding:12px;border-radius:10px;border:1px solid rgba(16,24,40,0.04);display:flex;flex-direction:column;gap:8px}
+    .product img{width:100%;height:140px;object-fit:cover;border-radius:8px}
+    .muted{color:var(--muted);font-size:13px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    input,textarea,select{padding:10px;border-radius:8px;border:1px solid rgba(16,24,40,0.06);width:100%;box-sizing:border-box}
+    label{display:block;font-weight:600;margin-bottom:6px}
+    .small{font-size:13px}
+    footer{padding:28px 0;text-align:center;color:var(--muted)}
+    .chip{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(16,24,40,0.04);font-size:13px}
+    /* responsive */
+    @media(max-width:880px){.two{grid-template-columns:1fr}.nav{flex-wrap:wrap}.container{padding:12px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">MyCart Demo</div>
+      <nav id="menu">
+        <a href="#home" data-page="home" class="active">Home</a>
+        <a href="#products" data-page="products">Products</a>
+        <a href="#orders" data-page="orders">Orders</a>
+        <a href="#wishlist" data-page="wishlist">Wishlist</a>
+        <a href="#contact" data-page="contact">Contact Us</a>
+        <a href="#about" data-page="about">About Us</a>
+      </nav>
+      <div class="spacer"></div>
+      <div id="user-area">
+        <button class="secondary" id="btn-report">Report</button>
+        <button class="btn" id="btn-login">Login / Register</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Pages (single page app style) -->
+    <section id="home" class="page card">
+      <h2>Welcome to MyCart</h2>
+      <p class="muted">This single-file demo implements navigation, forms with validation, and simple local-storage backed features for Orders, Wishlist, Comments & Reviews, Customer Care and Reporting options.</p>
+      <div class="grid two" style="margin-top:12px">
+        <div class="card">
+          <h3>Featured Products</h3>
+          <div id="featured" class="products"></div>
+        </div>
+        <aside class="card">
+          <h3>Your Snapshot</h3>
+          <div class="list">
+            <div><strong id="snap-user">Guest</strong></div>
+            <div class="muted">Orders: <span id="snap-orders">0</span></div>
+            <div class="muted">Wishlist: <span id="snap-wishlist">0</span></div>
+            <div style="margin-top:8px"><button class="btn" id="open-cust">Customer Care</button></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="products" class="page card" style="display:none;margin-top:16px">
+      <h2>Products</h2>
+      <div class="products" id="product-list"></div>
+    </section>
+
+    <section id="orders" class="page card" style="display:none;margin-top:16px">
+      <h2>Orders</h2>
+      <div id="orders-list" class="list"></div>
+    </section>
+
+    <section id="wishlist" class="page card" style="display:none;margin-top:16px">
+      <h2>Wishlist</h2>
+      <div id="wishlist-list" class="list"></div>
+    </section>
+
+    <section id="contact" class="page card" style="display:none;margin-top:16px">
+      <h2>Contact Us</h2>
+      <form id="contact-form" onsubmit="return false">
+        <label for="cname">Name</label>
+        <input id="cname" required />
+        <label for="cemail">Email</label>
+        <input id="cemail" type="email" required />
+        <label for="cmsg">Message</label>
+        <textarea id="cmsg" rows="4" required></textarea>
+        <div style="margin-top:8px"><button class="btn" id="send-contact">Send</button></div>
+      </form>
+    </section>
+
+    <section id="about" class="page card" style="display:none;margin-top:16px">
+      <h2>About Us</h2>
+      <p class="muted">A demonstration e-commerce portal built for your Assignment 3. All persistent data in this demo is stored in your browser's localStorage so you can test registration, login, orders and wishlist without a server.</p>
+    </section>
+
+    <!-- Customer Care / Reporting / Login Modals (simple) -->
+    <div id="modal-root"></div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <small class="muted">Assignment demo — local-only. Use the "Report" button to create a report entry, and Login/Register to use features.</small>
+    </div>
+  </footer>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    /* ------------------ Simple data models & helpers ------------------ */
+    const DB = {
+      usersKey: 'ec_demo_users',
+      sessionKey: 'ec_demo_session',
+      productsKey: 'ec_demo_products',
+      ordersKey: 'ec_demo_orders',
+      wishlistKey: 'ec_demo_wishlist',
+      reportsKey: 'ec_demo_reports',
+      commentsKey: 'ec_demo_comments'
+    }
+
+    // Utility: read / write local storage safely
+    const storage = {
+      read(k, fallback){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):fallback}catch(e){console.warn(e);return fallback} },
+      write(k,v){localStorage.setItem(k,JSON.stringify(v))}
+    }
+
+    // Seed some sample products (only first load)
+    const seedProducts = ()=>{
+      const existing = storage.read(DB.productsKey, null)
+      if(existing) return existing
+      const items = [
+        {id:1,title:'Wireless Headphones',price:2199,desc:'Noise-cancelling over-ear headphone',img:'https://picsum.photos/seed/p1/400/300'},
+        {id:2,title:'Smart Watch',price:3499,desc:'Fitness tracking + notifications',img:'https://picsum.photos/seed/p2/400/300'},
+        {id:3,title:'Gaming Mouse',price:1299,desc:'Ergonomic, RGB lighting',img:'https://picsum.photos/seed/p3/400/300'},
+        {id:4,title:'Coffee Maker',price:2599,desc:'12-cup, programmable',img:'https://picsum.photos/seed/p4/400/300'},
+        {id:5,title:'Backpack',price:999,desc:'Water-resistant laptop backpack',img:'https://picsum.photos/seed/p5/400/300'},
+        {id:6,title:'Bluetooth Speaker',price:1799,desc:'Portable, 10 hours playtime',img:'https://picsum.photos/seed/p6/400/300'}
+      ]
+      storage.write(DB.productsKey, items)
+      return items
+    }
+
+    /* ------------------ Renderers ------------------ */
+    function renderProducts(el, list){
+      el.innerHTML = ''
+      list.forEach(p=>{
+        const div = document.createElement('div'); div.className='product'
+        div.innerHTML = `
+          <img src="${p.img}" alt="${p.title}" />
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <strong>${p.title}</strong><span class="muted">₹${p.price}</span>
+            </div>
+            <div class="muted small">${p.desc}</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn" data-buy="${p.id}">Buy</button>
+            <button class="secondary" data-wish="${p.id}">Wishlist</button>
+            <button class="secondary" data-review="${p.id}">Review</button>
+          </div>
+        `
+        el.appendChild(div)
+      })
+    }
+
+    function renderFeatured(){
+      const featured = document.getElementById('featured')
+      const list = seedProducts().slice(0,3)
+      renderProducts(featured, list)
+    }
+
+    function renderProductList(){
+      const el = document.getElementById('product-list')
+      const list = seedProducts()
+      renderProducts(el, list)
+    }
+
+    function renderOrders(){
+      const el = document.getElementById('orders-list')
+      const orders = storage.read(DB.ordersKey, [])
+      el.innerHTML = ''
+      if(orders.length===0){ el.innerHTML='<div class="muted">No orders yet.</div>'; return }
+      orders.forEach(o=>{
+        const d = document.createElement('div'); d.className='card'
+        d.innerHTML = `<strong>Order #${o.id}</strong> — <span class="muted">${o.date}</span><div class="muted">${o.items.map(i=>i.title).join(', ')}</div>`
+        el.appendChild(d)
+      })
+    }
+
+    function renderWishlist(){
+      const el = document.getElementById('wishlist-list')
+      const wishlist = storage.read(DB.wishlistKey, [])
+      el.innerHTML = ''
+      if(wishlist.length===0){ el.innerHTML='<div class="muted">Wishlist is empty.</div>'; return }
+      wishlist.forEach(w=>{
+        const d = document.createElement('div'); d.className='card'
+        d.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${w.title}</strong><div class="muted small">₹${w.price}</div></div><div><button class="btn" data-buy="${w.id}">Buy</button> <button class="secondary" data-remwish="${w.id}">Remove</button></div></div>`
+        el.appendChild(d)
+      })
+    }
+
+    function updateSnapshot(){
+      const user = storage.read(DB.sessionKey, null)
+      document.getElementById('snap-user').innerText = user?user.name:'Guest'
+      document.getElementById('snap-orders').innerText = storage.read(DB.ordersKey, []).length
+      document.getElementById('snap-wishlist').innerText = storage.read(DB.wishlistKey, []).length
+    }
+
+    /* ------------------ Navigation ------------------ */
+    document.getElementById('menu').addEventListener('click', (e)=>{
+      const a = e.target.closest('a')
+      if(!a) return
+      e.preventDefault()
+      const page = a.dataset.page
+      document.querySelectorAll('nav a').forEach(n=>n.classList.remove('active'))
+      a.classList.add('active')
+      document.querySelectorAll('.page').forEach(p=>p.style.display = 'none')
+      document.getElementById(page).style.display = 'block'
+      // re-render if needed
+      if(page==='products') renderProductList()
+      if(page==='orders') renderOrders()
+      if(page==='wishlist') renderWishlist()
+    })
+
+    /* ------------------ Event Delegation for product actions ------------------ */
+    document.addEventListener('click', (e)=>{
+      const buy = e.target.closest('[data-buy]')
+      const wish = e.target.closest('[data-wish]')
+      const remwish = e.target.closest('[data-remwish]')
+      const review = e.target.closest('[data-review]')
+      if(buy){ const id=+buy.dataset.buy; handleBuy(id); }
+      if(wish){ const id=+wish.dataset.wish; addToWishlistById(id); }
+      if(remwish){ const id=+remwish.dataset.remwish; removeFromWishlist(id); }
+      if(review){ const id=+review.dataset.review; openReviewModal(id); }
+    })
+
+    /* ------------------ Simple Auth: Register & Login with validation ------------------ */
+    function openModal(html){
+      const root = document.getElementById('modal-root')
+      root.innerHTML = `<div class="modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;z-index:50">
+        <div style="width:820px;max-width:96%;">${html}</div>
+      </div>`
+      // attach close handler
+      root.querySelectorAll('[data-close]').forEach(n=>n.addEventListener('click', ()=>root.innerHTML=''))
+    }
+
+    document.getElementById('btn-login').addEventListener('click', ()=>{
+      openAuthModal()
+    })
+
+    function openAuthModal(){
+      const html = `
+        <div class="card" style="padding:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><h3>Login / Register</h3><button data-close class="secondary">Close</button></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+            <div>
+              <h4>Login</h4>
+              <form id="login-form" onsubmit="return false">
+                <label for="lemail">Email</label>
+                <input id="lemail" type="email" required />
+                <label for="lpass">Password</label>
+                <input id="lpass" type="password" required />
+                <div style="margin-top:8px"><button class="btn">Login</button></div>
+                <div id="login-msg" class="muted small" style="margin-top:8px"></div>
+              </form>
+            </div>
+            <div>
+              <h4>Register</h4>
+              <form id="reg-form" onsubmit="return false">
+                <label for="rname">Full Name</label>
+                <input id="rname" required />
+                <label for="remail">Email</label>
+                <input id="remail" type="email" required />
+                <label for="rpass">Password (min 6 chars)</label>
+                <input id="rpass" type="password" minlength="6" required />
+                <label for="rpass2">Confirm Password</label>
+                <input id="rpass2" type="password" required />
+                <div style="margin-top:8px"><button class="btn">Register</button></div>
+                <div id="reg-msg" class="muted small" style="margin-top:8px"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      `
+      openModal(html)
+
+      // attach handlers
+      document.getElementById('reg-form').addEventListener('submit', ()=>{})
+      document.getElementById('reg-form').querySelector('button').addEventListener('click', ()=>{
+        const name=document.getElementById('rname').value.trim()
+        const email=document.getElementById('remail').value.trim().toLowerCase()
+        const p1=document.getElementById('rpass').value
+        const p2=document.getElementById('rpass2').value
+        const msg=document.getElementById('reg-msg')
+        // validation
+        if(!name||!email||!p1||!p2){ msg.innerText='All fields required'; return }
+        if(p1!==p2){ msg.innerText='Passwords do not match'; return }
+        if(p1.length<6){ msg.innerText='Password must be at least 6 characters'; return }
+        // check for existing
+        const users = storage.read(DB.usersKey, [])
+        if(users.find(u=>u.email===email)){ msg.innerText='Email already registered'; return }
+        const newUser = {id:Date.now(),name,email,password:p1}
+        users.push(newUser)
+        storage.write(DB.usersKey, users)
+        storage.write(DB.sessionKey, {name,email,id:newUser.id})
+        msg.innerText = 'Registered & logged in'
+        setTimeout(()=>{ document.getElementById('modal-root').innerHTML=''; updateSnapshot(); },800)
+      })
+
+      document.getElementById('login-form').addEventListener('submit', ()=>{})
+      document.getElementById('login-form').querySelector('button').addEventListener('click', ()=>{
+        const email=document.getElementById('lemail').value.trim().toLowerCase()
+        const pass=document.getElementById('lpass').value
+        const msg=document.getElementById('login-msg')
+        const users = storage.read(DB.usersKey, [])
+        const user = users.find(u=>u.email===email && u.password===pass)
+        if(!user){ msg.innerText='Invalid credentials'; return }
+        storage.write(DB.sessionKey, {id:user.id,name:user.name,email:user.email})
+        msg.innerText='Logged in'
+        setTimeout(()=>{ document.getElementById('modal-root').innerHTML=''; updateSnapshot(); },600)
+      })
+    }
+
+    /* ------------------ Buy / Orders / Wishlist ------------------ */
+    function handleBuy(id){
+      const products = storage.read(DB.productsKey, [])
+      const p = products.find(x=>x.id===id)
+      if(!p) return alert('Product not found')
+      // create an order
+      const orders = storage.read(DB.ordersKey, [])
+      const order = {id:orders.length+1,date:(new Date()).toLocaleString(),items:[p]}
+      orders.push(order)
+      storage.write(DB.ordersKey, orders)
+      alert('Order placed!')
+      updateSnapshot(); renderOrders()
+    }
+
+    function addToWishlistById(id){
+      const products = storage.read(DB.productsKey, [])
+      const p = products.find(x=>x.id===id)
+      if(!p) return
+      const w = storage.read(DB.wishlistKey, [])
+      if(w.find(x=>x.id===p.id)) { alert('Already in wishlist'); return }
+      w.push(p)
+      storage.write(DB.wishlistKey, w)
+      alert('Added to wishlist')
+      updateSnapshot(); renderWishlist()
+    }
+
+    function removeFromWishlist(id){
+      let w = storage.read(DB.wishlistKey, [])
+      w = w.filter(x=>x.id!==id)
+      storage.write(DB.wishlistKey, w)
+      renderWishlist(); updateSnapshot()
+    }
+
+    /* ------------------ Comments & Reviews (simple) ------------------ */
+    function openReviewModal(productId){
+      const p = seedProducts().find(x=>x.id===productId)
+      const comments = storage.read(DB.commentsKey, [])
+      const forThis = comments.filter(c=>c.productId===productId)
+      let listHtml = forThis.length? forThis.map(c=>`<div class="card"><strong>${c.name}</strong> <span class="muted small">${c.date}</span><div class="muted small">${c.text}</div></div>`).join('') : '<div class="muted">No reviews yet.</div>'
+      const html = `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center"><h3>Reviews — ${p.title}</h3><button data-close class="secondary">Close</button></div>
+          <div style="margin-top:12px">${listHtml}</div>
+          <hr />
+          <h4>Add Review</h4>
+          <form id="rev-form" onsubmit="return false">
+            <label for="rname">Name</label>
+            <input id="rev-name" required />
+            <label for="rtext">Review</label>
+            <textarea id="rev-text" rows="3" required></textarea>
+            <div style="margin-top:8px"><button class="btn">Submit Review</button></div>
+          </form>
+        </div>
+      `
+      openModal(html)
+      document.getElementById('rev-form').querySelector('button').addEventListener('click', ()=>{
+        const name = document.getElementById('rev-name').value.trim() || 'Anonymous'
+        const text = document.getElementById('rev-text').value.trim()
+        if(!text){ alert('Please enter review text'); return }
+        const comments = storage.read(DB.commentsKey, [])
+        comments.push({id:Date.now(),productId, name, text, date:(new Date()).toLocaleString()})
+        storage.write(DB.commentsKey, comments)
+        alert('Review submitted')
+        document.getElementById('modal-root').innerHTML=''
+      })
+    }
+
+    /* ------------------ Customer Care & Reporting ------------------ */
+    document.getElementById('open-cust').addEventListener('click', ()=>{
+      const html = `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center"><h3>Customer Care</h3><button data-close class="secondary">Close</button></div>
+          <div class="muted small" style="margin-top:8px">For demo purposes you can create a support ticket which will be stored in localStorage.</div>
+          <form id="cust-form" onsubmit="return false" style="margin-top:12px">
+            <label for="ctitle">Issue Title</label>
+            <input id="ctitle" required />
+            <label for="cdesc">Description</label>
+            <textarea id="cdesc" rows="4" required></textarea>
+            <div style="margin-top:8px"><button class="btn">Create Ticket</button></div>
+          </form>
+        </div>
+      `
+      openModal(html)
+      document.getElementById('cust-form').querySelector('button').addEventListener('click', ()=>{
+        const title = document.getElementById('ctitle').value.trim()
+        const desc = document.getElementById('cdesc').value.trim()
+        if(!title||!desc) return alert('All fields required')
+        const reports = storage.read(DB.reportsKey, [])
+        reports.push({id:Date.now(),title,desc,date:(new Date()).toLocaleString()})
+        storage.write(DB.reportsKey, reports)
+        alert('Ticket created')
+        document.getElementById('modal-root').innerHTML=''
+      })
+    })
+
+    document.getElementById('btn-report').addEventListener('click', ()=>{
+      const html = `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center"><h3>Report Site Issue</h3><button data-close class="secondary">Close</button></div>
+          <form id="report-form" onsubmit="return false" style="margin-top:12px">
+            <label for="rtitle">Title</label>
+            <input id="rtitle" required />
+            <label for="rdesc">Description</label>
+            <textarea id="rdesc" rows="4" required></textarea>
+            <div style="margin-top:8px"><button class="btn">Submit Report</button></div>
+          </form>
+        </div>
+      `
+      openModal(html)
+      document.getElementById('report-form').querySelector('button').addEventListener('click', ()=>{
+        const title=document.getElementById('rtitle').value.trim(); const desc=document.getElementById('rdesc').value.trim()
+        if(!title||!desc) return alert('Please fill everything')
+        const rpt = storage.read(DB.reportsKey, [])
+        rpt.push({id:Date.now(),title,desc,date:(new Date()).toLocaleString()})
+        storage.write(DB.reportsKey, rpt)
+        alert('Report submitted')
+        document.getElementById('modal-root').innerHTML=''
+      })
+    })
+
+    /* ------------------ Contact form submit (with front-end validation) ------------------ */
+    document.getElementById('send-contact').addEventListener('click', ()=>{
+      const name=document.getElementById('cname').value.trim(); const email=document.getElementById('cemail').value.trim(); const msg=document.getElementById('cmsg').value.trim()
+      if(!name||!email||!msg) return alert('Please fill all fields')
+      alert('Thanks — we received your message (demo)')
+      document.getElementById('cname').value='';document.getElementById('cemail').value='';document.getElementById('cmsg').value=''
+    })
+
+    /* ------------------ Initialization ------------------ */
+    (function init(){
+      seedProducts(); renderFeatured(); updateSnapshot();
+      // default page is home
+    })()
+
+    /* ------------------ Helpful: expose dump for debugging (dev only) ------------------ */
+    window._dump = ()=>({users:storage.read(DB.usersKey,[]),orders:storage.read(DB.ordersKey,[]),wishlist:storage.read(DB.wishlistKey,[]),reports:storage.read(DB.reportsKey,[]),comments:storage.read(DB.commentsKey,[])})
+  })
+</script>
+</body>
+</html>
