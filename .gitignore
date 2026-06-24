@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+frontend/dist/
+frontend/.vite/
+
+# Environment — never commit real secrets
+.env
+!.env.example
+backend/.env
+!backend/.env.example
+frontend/.env
+!frontend/.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor metadata
+.vscode/
+.idea/
+*.swp
+*.swo

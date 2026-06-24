@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+  body {
+    background-color: theme('colors.bg');
+  }
+  /* Visible keyboard focus everywhere — never rely on the browser default alone */
+  :focus-visible {
+    outline: 2px solid theme('colors.primary.DEFAULT');
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* The Now Serving hero card: a digital stand-in for the torn paper token
+     slip the brief describes. Two circular notches punched into the left
+     and right edges, plus a dashed seam separating the "ticket" from the
+     "stub" — the one deliberate signature flourish of this app. Only use
+     on cards that sit directly against the page background, since the
+     notches are colored to match it. */
+  .ticket-hero {
+    position: relative;
+    background-color: theme('colors.surface');
+  }
+  .ticket-hero::before,
+  .ticket-hero::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 28px;
+    height: 28px;
+    background-color: theme('colors.bg');
+    border-radius: 9999px;
+    transform: translateY(-50%);
+  }
+  .ticket-hero::before {
+    left: -14px;
+  }
+  .ticket-hero::after {
+    right: -14px;
+  }
+
+  .ticket-seam {
+    border-top: 2px dashed theme('colors.line');
+  }
+
+  /* Small token badge used inline in tables / lists — same family,
+     lighter weight so the hero card stays the one bold statement. */
+  .token-chip {
+    @apply inline-flex items-center justify-center rounded-lg border border-line bg-primary-light
+      px-2.5 py-1 font-display text-sm font-bold tracking-wide text-primary-dark;
+  }
+}

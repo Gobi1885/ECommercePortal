@@ -1,0 +1,13 @@
+{
+  "name": "queue-cure",
+  "version": "1.0.0",
+  "description": "Monorepo root — convenience scripts to start backend + frontend together",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "dev": "node scripts/dev.js",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "test": "node backend/test/queueManager.test.js"
+  }
+}

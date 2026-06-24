@@ -1,0 +1,53 @@
+sequenceDiagram
+    autonumber
+    participant R as Receptionist screen<br/>(Screen 1)
+    participant S as Express API +<br/>Socket.io server
+    participant Q as QueueManager<br/>(in-memory state)
+    participant W as Waiting room screen(s)<br/>(Screen 2, any number)
+
+    Note over R,W: On page load — both screens hydrate over plain REST first
+    R->>S: GET /api/queue
+    S-->>R: snapshot JSON
+    W->>S: GET /api/queue
+    S-->>W: snapshot JSON
+    R-)S: socket connects
+    W-)S: socket connects
+    S--)R: queue:update (immediate re-sync)
+    S--)W: queue:update (immediate re-sync)
+
+    rect rgb(232, 245, 240)
+    Note over R,W: Flow A — Receptionist adds a patient
+    R->>S: POST /api/patients { name, phone }
+    S->>Q: addPatient()
+    Q-->>S: new patient created
+    S-->>R: 201 Created { patient }
+    S--)R: emit patient:added
+    S--)W: emit patient:added
+    S--)R: emit queue:update (full snapshot)
+    S--)W: emit queue:update (full snapshot)
+    Note right of W: Queue length + estimated waits<br/>update with no page refresh
+    end
+
+    rect rgb(251, 234, 209)
+    Note over R,W: Flow B — Receptionist clicks "Call Next"
+    R->>S: POST /api/call-next
+    S->>Q: callNext()
+    Q->>Q: complete current patient,<br/>record real consultation duration,<br/>promote next waiting patient
+    Q-->>S: { calledPatient, previousPatient }
+    S-->>R: 200 OK { calledPatient, previousPatient }
+    S--)R: emit token:called
+    S--)W: emit token:called
+    S--)R: emit queue:update (full snapshot)
+    S--)W: emit queue:update (full snapshot)
+    Note right of W: "Now Serving" flips live on every<br/>connected screen at the same instant
+    end
+
+    rect rgb(255, 255, 255)
+    Note over R,W: Reconnect safety net
+    W--xS: connection drops (wifi blip, tab backgrounded)
+    Note right of W: any events fired while<br/>disconnected are missed —<br/>sockets do not replay history
+    W-)S: socket reconnects
+    W->>S: GET /api/queue (re-hydrate over REST)
+    S-->>W: current snapshot
+    Note right of W: screen is correct again,<br/>independent of what it missed
+    end
