@@ -4,11 +4,6 @@ A live token queue for clinics, built for **Queue Cure '26**: a
 receptionist desk view and a patient waiting-room display that stay in
 sync the instant a token is called — no refresh, on either screen.
 
-> **Before you submit:** replace the bracketed placeholders below
-> (`[ ... ]`) with your own repo URL, demo link, and team name. Nothing in
-> this codebase contains anyone's name.
-
-- 🎥 Demo video / live link: `[add yours here]`
 - 📄 Thought process: [`docs/THOUGHT_PROCESS.md`](docs/THOUGHT_PROCESS.md)
 - 🔌 Socket event diagram: [`docs/SOCKET_EVENT_DIAGRAM.md`](docs/SOCKET_EVENT_DIAGRAM.md)
 
